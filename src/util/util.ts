@@ -1,5 +1,8 @@
 import fs from "fs";
-import Jimp = require("jimp");
+import Jimp = require("jimp"); 
+// const ImageBuffer = require("imagebuffer"); 
+
+const Axios = require("axios");
 
 // filterImageFromURL
 // helper function to download, filter, and save the filtered image locally
@@ -12,6 +15,8 @@ export async function filterImageFromURL(inputURL: string): Promise<string> {
   return new Promise((resolve, reject) => {
       Jimp.read(inputURL).then(photo => {
           const outpath = '/tmp/filtered.' + Math.floor(Math.random() * 2000) + '.jpg';
+          const mimeType = photo.getMIME();
+          console.log("mimeType"+mimeType);
           photo
               .resize(256, 256) // resize
               .quality(60) // set JPEG quality
@@ -25,21 +30,40 @@ export async function filterImageFromURL(inputURL: string): Promise<string> {
       })
   });
 }
-export async function filterImageFromURL2(inputURL: string): Promise<string> {
+
+export async function filterImageFromURLUsingAxios(inputURL: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
-      console.log("I'm here")
-      const photo = await Jimp.read(inputURL);
-      console.log(photo)
-      const outpath =
+      const outpath2 =
         "/tmp/filtered." + Math.floor(Math.random() * 2000) + ".jpg";
-      await photo
+      const writer = fs.createWriteStream(outpath2)
+      const response = await Axios({
+        url: inputURL,
+        method: 'GET',
+        responseType: 'arraybuffer'
+      })
+
+      // response.data.pipe(writer)
+      const photo2 = await Jimp.read(response.data);
+
+      await photo2
         .resize(256, 256) // resize
         .quality(60) // set JPEG quality
         .greyscale() // set greyscale
-        .write(__dirname + outpath, (img) => {
-          resolve(__dirname + outpath);
+        .write(__dirname + outpath2, (img) => {
+          resolve(__dirname + outpath2);
         });
+
+
+      /*Axios({
+        method: 'get',
+        c inputURL,
+        responseType: 'arraybuffer'
+      })
+      .then(function ({data: imageBuffer}) {
+        return Jimp.read(imageBuffer)
+      })
+      */
     } catch (error) {
       reject(error);
     }
