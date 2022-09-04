@@ -15,8 +15,6 @@ export async function filterImageFromURL(inputURL: string): Promise<string> {
   return new Promise((resolve, reject) => {
       Jimp.read(inputURL).then(photo => {
           const outpath = '/tmp/filtered.' + Math.floor(Math.random() * 2000) + '.jpg';
-          const mimeType = photo.getMIME();
-          console.log("mimeType"+mimeType);
           photo
               .resize(256, 256) // resize
               .quality(60) // set JPEG quality
@@ -36,14 +34,12 @@ export async function filterImageFromURLUsingAxios(inputURL: string): Promise<st
     try {
       const outpath2 =
         "/tmp/filtered." + Math.floor(Math.random() * 2000) + ".jpg";
-      const writer = fs.createWriteStream(outpath2)
       const response = await Axios({
         url: inputURL,
         method: 'GET',
         responseType: 'arraybuffer'
       })
 
-      // response.data.pipe(writer)
       const photo2 = await Jimp.read(response.data);
 
       await photo2
@@ -54,16 +50,6 @@ export async function filterImageFromURLUsingAxios(inputURL: string): Promise<st
           resolve(__dirname + outpath2);
         });
 
-
-      /*Axios({
-        method: 'get',
-        c inputURL,
-        responseType: 'arraybuffer'
-      })
-      .then(function ({data: imageBuffer}) {
-        return Jimp.read(imageBuffer)
-      })
-      */
     } catch (error) {
       reject(error);
     }
