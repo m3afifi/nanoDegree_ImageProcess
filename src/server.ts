@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, filterImageFromURLUsingAxios, deleteLocalFiles} from './util/util';
 
 (async () => {
 
@@ -28,20 +28,25 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
 
   /**************************************************************************** */
-  app.get("/filteredimage", async ( req, res ) => { //?image_url={{URL}}
-    let imageURL:string =  req.query.image_url;
+  app.get("/filteredimage", async ( req, res ) => { 
+    let {image_url} =  req.query;
 
-    if(!imageURL){
+    if(!image_url){
       return res.status(400).send("Error! Image URL is required")
     }
 
-    console.log(imageURL);
+    console.log(image_url);
 
     
     try{
-      let processedImagePath = await filterImageFromURL(imageURL);
-      res.sendFile(processedImagePath);
-      res.on('finish', () => deleteLocalFiles([processedImagePath]));
+      //Using new Liberary (Axios) to handle error in getting large Image size
+      filterImageFromURLUsingAxios(image_url).then(processedImagePath=>
+        {
+          res.sendFile(processedImagePath);
+          res.on('finish', () => deleteLocalFiles([processedImagePath]));
+        }
+      )
+      
     }catch{
       return res.status(500).send({error: 'Something went wrong in Image Processing!'});
     }
