@@ -28,8 +28,9 @@ import {filterImageFromURL, filterImageFromURLUsingAxios, deleteLocalFiles} from
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
 
   /**************************************************************************** */
-  app.get("/filteredimage", async ( req, res ) => { 
-    let {image_url} =  req.query;
+  app.get("/filteredimage", 
+  async ( req, res ) => { 
+    let image_url:string =  req.query.image_url;
 
     if(!image_url){
       return res.status(400).send("Error! Image URL is required")
@@ -40,14 +41,10 @@ import {filterImageFromURL, filterImageFromURLUsingAxios, deleteLocalFiles} from
     
     try{
       //Using new Liberary (Axios) to handle error in getting large Image size
-      filterImageFromURLUsingAxios(image_url).then(processedImagePath=>
-        {
-          res.sendFile(processedImagePath);
-          res.on('finish', () => deleteLocalFiles([processedImagePath]));
-        }
-      )
-      
-    }catch{
+      let processedImagePath:string = await filterImageFromURLUsingAxios(image_url)
+      res.status(200).sendFile(processedImagePath);
+      res.on('finish', () => deleteLocalFiles([processedImagePath]));
+    }catch(e){
       return res.status(500).send({error: 'Something went wrong in Image Processing!'});
     }
     
